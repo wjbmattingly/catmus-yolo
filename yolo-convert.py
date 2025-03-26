@@ -97,7 +97,7 @@ def sanitize_filename(filename):
     
     return filename
 
-def convert_to_yolov11_format(data, output_dir="yolov11_output", split="train", create_yaml=True, class_source='category', max_size=1500, shelfmark_counts=None):
+def convert_to_yolov11_format(data, output_dir="./", split="train", create_yaml=True, class_source='category', max_size=1500, shelfmark_counts=None):
     """
     Converts the given input dictionary to YOLOv11 PyTorch TXT format.  Allows
     specifying whether to use 'category' or 'type' for class labels.
