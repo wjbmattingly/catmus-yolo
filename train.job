@@ -6,7 +6,7 @@
 #$ -cwd
 #$ -j y
 #$ -N transcribe
-#$ -o logs/loop_$TASK_ID.log
+#$ -o log.log
 #$ -m bea
 #$ -M mattinglyw@si.edu
 #
