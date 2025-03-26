@@ -5,8 +5,8 @@
 #$ -l gpu,ngpu=2,gpu_arch=L40S
 #$ -cwd
 #$ -j y
-#$ -N transcribe
-#$ -o log.log
+#$ -N training
+#$ -o training.log
 #$ -m bea
 #$ -M mattinglyw@si.edu
 #
@@ -22,7 +22,7 @@ module load nvidia
 
 
 # Run the Python script with the appropriate parameters
-python yolo-convert.py
+
 python training.py
 
 echo = `date` job $JOB_NAME done
