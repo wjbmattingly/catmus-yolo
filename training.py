@@ -16,8 +16,8 @@ for model_name in models:
         data="data.yaml",
         epochs=100,
         imgsz=640,
-        project=f"ms{model_name}",
         batch=8,  # Reduce batch size (default is 16)
         # cache=False,  # Disable caching
+        name=f"ms-{model_name}",
         workers=2  # Reduce number of workers
     )
