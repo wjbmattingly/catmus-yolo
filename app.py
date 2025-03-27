@@ -9,7 +9,10 @@ from ultralytics import YOLO
 # Define models
 MODEL_OPTIONS = {
     "YOLOv11-Nano": "medieval-yolov11n.pt",
-    "YOLOv11-Large": "medieval-yolov11l.pt"
+    "YOLOv11-Small": "medieval-yolov11s.pt",
+    "YOLOv11-Medium": "medieval-yolov11m.pt",
+    "YOLOv11-Large": "medieval-yolov11l.pt",
+    "YOLOv11-XLarge": "medieval-yolov11x.pt"
 }
 
 # Dictionary to store loaded models
@@ -18,7 +21,7 @@ models: Dict[str, YOLO] = {}
 # Load all models
 for name, model_file in MODEL_OPTIONS.items():
     model_path = hf_hub_download(
-        repo_id="cultural-heritage/medieval-manuscript-yolov11",
+        repo_id="biglam/medieval-manuscript-yolov11",
         filename=model_file
     )
     models[name] = YOLO(model_path)
