@@ -1,0 +1,27 @@
+#!/bin/sh
+# ----------------Parameters---------------------- #
+#$ -S /bin/sh
+#$ -pe mthread 1
+#$ -l gpu,ngpu=1,gpu_arch=L40S
+#$ -cwd
+#$ -j y
+#$ -N training_all
+#$ -o training_all.log
+#$ -m bea
+#$ -M mattinglyw@si.edu
+#
+# ----------------Modules------------------------- #
+#
+export PATH=/home/mattinglyw/mambaforge/envs/ushmm/bin:$PATH
+#
+# ----------------Your Commands------------------- #
+#
+echo + `date` job $JOB_NAME started in $QUEUE with jobID=$JOB_ID on $HOSTNAME
+echo + NSLOTS = $NSLOTS
+module load nvidia
+
+
+# Run the Python script with the appropriate parameters
+python yolo-convert_seg.py
+
+echo = `date` job $JOB_NAME done
