@@ -1,13 +1,23 @@
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")  # load a pretrained model
+models = [
+    # "yolo11n.pt",
+    "yolo11s.pt",
+    "yolo11m.pt",
+    "yolo11l.pt",
+    "yolo11x.pt"
+    ]
 
-# Train the model with memory-saving parameters
-results = model.train(
-    data="data.yaml",
-    epochs=100,
-    imgsz=640,
-    batch=8,  # Reduce batch size (default is 16)
-    # cache=False,  # Disable caching
-    workers=2  # Reduce number of workers
-)
+for model in models:
+    model = YOLO(model)  # load a pretrained model
+
+        # Train the model with memory-saving parameters
+    results = model.train(
+        data="data.yaml",
+        epochs=100,
+        imgsz=640,
+        project=f"medieval-manuscript-{model}",
+        batch=8,  # Reduce batch size (default is 16)
+        # cache=False,  # Disable caching
+        workers=2  # Reduce number of workers
+    )
