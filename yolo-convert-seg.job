@@ -22,6 +22,6 @@ module load nvidia
 
 
 # Run the Python script with the appropriate parameters
-python yolo-convert_seg.py --segmentation_type mask --output_dir ./
+python yolo-convert_seg.py --seg mask --output_dir ./
 
 echo = `date` job $JOB_NAME done
