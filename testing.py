@@ -1,6 +1,12 @@
 from ultralytics import YOLO
 from huggingface_hub import hf_hub_download
 from typing import Dict
+import yaml
+
+# Load class names from data.yaml
+with open('data.yaml', 'r') as f:
+    data_config = yaml.safe_load(f)
+    class_names = data_config['names']
 
 # Define models
 MODEL_OPTIONS = {
@@ -54,6 +60,7 @@ with open('results.md', 'w') as f:
         f.write('|-------|----------|\n')
         
         for class_id, map_value in enumerate(results['maps']):
-            f.write(f"| Class {class_id} | {map_value:.3f} |\n")
+            class_name = class_names[class_id]
+            f.write(f"| {class_name} | {map_value:.3f} |\n")
 
 print("Results have been written to results.md")
