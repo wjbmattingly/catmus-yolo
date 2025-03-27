@@ -1,2 +1,2 @@
-ultraltyics
+ultralytics
 datasets
