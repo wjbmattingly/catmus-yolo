@@ -162,10 +162,10 @@ def convert_to_yolov11_format(data, output_dir="./", split="train", create_yaml=
     # Check if polygon/mask annotations are available
     has_polygons = has_polygon_annotations(data['objects'])
     
-    # If mask segmentation requested but no polygons available, fall back to bbox
+    # If mask segmentation requested but no polygons available, skip the image
     if segmentation_type == 'mask' and not has_polygons:
-        print(f"Warning: Mask segmentation requested but no polygon annotations found. Falling back to bounding boxes.")
-        segmentation_type = 'bbox'
+        print(f"Skipping {data.get('shelfmark', 'unknown')}: Mask segmentation requested but no polygon annotations found")
+        return False
 
     # Validate all bounding boxes before processing (always needed as fallback)
     image_width = data['width']
