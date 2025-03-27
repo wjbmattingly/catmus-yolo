@@ -52,15 +52,25 @@ with open('results.md', 'w') as f:
         f.write(f"| {name} | {results['map']:.3f} | {results['map50']:.3f} | {results['map75']:.3f} |\n")
     
     # Write per-class metrics for each model
-    f.write('\n## Per-Class Metrics\n\n')
+    f.write('\n## Per-Class mAP50-95 Metrics\n\n')
     
-    for name, results in all_results.items():
-        f.write(f'\n### {name}\n\n')
-        f.write('| Class | mAP50-95 |\n')
-        f.write('|-------|----------|\n')
-        
-        for class_id, map_value in enumerate(results['maps']):
-            class_name = class_names[class_id]
-            f.write(f"| {class_name} | {map_value:.3f} |\n")
+    # Create header with model names
+    f.write('| Class |')
+    for model_name in MODEL_OPTIONS.keys():
+        f.write(f' {model_name} |')
+    f.write('\n')
+    
+    # Create separator line
+    f.write('|--------|')
+    f.write('-----------|' * len(MODEL_OPTIONS))
+    f.write('\n')
+    
+    # Write each class's metrics across all models
+    for class_id, class_name in enumerate(class_names):
+        f.write(f'| {class_name} |')
+        for model_name in MODEL_OPTIONS.keys():
+            map_value = all_results[model_name]['maps'][class_id]
+            f.write(f' {map_value:.3f} |')
+        f.write('\n')
 
 print("Results have been written to results.md")
