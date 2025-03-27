@@ -14,7 +14,7 @@ for model_name in models:
 
         # Train the model with memory-saving parameters
     results = model.train(
-        data="yolov11_output/data.yaml",
+        data="data.yaml",
         epochs=100,
         imgsz=640,
         batch=8,  # Reduce batch size (default is 16)
