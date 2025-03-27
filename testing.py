@@ -24,12 +24,14 @@ for name, model_file in MODEL_OPTIONS.items():
     models[name] = YOLO(model_path)
     model = YOLO(model_path)
     metrics = model.val(data="data.yaml", verbose=True)
-
-    cls_metrics = metrics.box.cls
-    maps_metrics = metrics.box.maps
+    
+    # Get metrics from the validation results
+    results_dict = metrics.results_dict
     all_results[name] = {
-        "cls_metrics": cls_metrics,
-        "maps_metrics": maps_metrics
+        "precision": results_dict['metrics/precision(B)'],
+        "recall": results_dict['metrics/recall(B)'],
+        "mAP50": results_dict['metrics/mAP50(B)'],
+        "mAP50-95": results_dict['metrics/mAP50-95(B)']
     }
 
 # Create markdown output
@@ -42,8 +44,6 @@ with open('results.md', 'w') as f:
     f.write('|-------|-----------|---------|--------|----------|\n')
     
     for name, results in all_results.items():
-        cls = results['cls_metrics']
-        maps = results['maps_metrics']
-        f.write(f'| {name} | {cls.precision:.3f} | {cls.recall:.3f} | {maps[0]:.3f} | {maps[-1]:.3f} |\n')
+        f.write(f"| {name} | {results['precision']:.3f} | {results['recall']:.3f} | {results['mAP50']:.3f} | {results['mAP50-95']:.3f} |\n")
 
 print("Results have been written to results.md")
