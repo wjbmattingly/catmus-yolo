@@ -8,15 +8,15 @@ models = [
     "yolo11x.pt"
     ]
 
-for model in models:
-    model = YOLO(model)  # load a pretrained model
+for model_name in models:
+    model = YOLO(model_name)  # load a pretrained model
 
         # Train the model with memory-saving parameters
     results = model.train(
         data="data.yaml",
         epochs=100,
         imgsz=640,
-        project=f"ms-{model}",
+        project=f"ms{model_name}",
         batch=8,  # Reduce batch size (default is 16)
         # cache=False,  # Disable caching
         workers=2  # Reduce number of workers
