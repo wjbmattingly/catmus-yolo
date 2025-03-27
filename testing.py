@@ -26,13 +26,11 @@ for name, model_file in MODEL_OPTIONS.items():
     metrics = model.val(data="data.yaml", verbose=True)
     
     # Get metrics from the validation results
-    results_dict = metrics.results_dict
     all_results[name] = {
-        "precision": results_dict['metrics/precision(B)'],
-        "recall": results_dict['metrics/recall(B)'],
-        "mAP50": results_dict['metrics/mAP50(B)'],
-        "mAP50-95": results_dict['metrics/mAP50-95(B)'],
-        "per_class": metrics.classes  # Get per-class statistics
+        "map": metrics.box.map,    # mAP50-95
+        "map50": metrics.box.map50,  # mAP50
+        "map75": metrics.box.map75,  # mAP75
+        "maps": metrics.box.maps     # list of mAP50-95 for each category
     }
 
 # Create markdown output
@@ -41,22 +39,21 @@ with open('results.md', 'w') as f:
     
     # Write overall metrics
     f.write('## Overall Metrics\n\n')
-    f.write('| Model | Precision | Recall | mAP50 | mAP50-95 |\n')
-    f.write('|-------|-----------|---------|--------|----------|\n')
+    f.write('| Model | mAP50-95 | mAP50 | mAP75 |\n')
+    f.write('|-------|-----------|--------|--------|\n')
     
     for name, results in all_results.items():
-        f.write(f"| {name} | {results['precision']:.3f} | {results['recall']:.3f} | {results['mAP50']:.3f} | {results['mAP50-95']:.3f} |\n")
+        f.write(f"| {name} | {results['map']:.3f} | {results['map50']:.3f} | {results['map75']:.3f} |\n")
     
     # Write per-class metrics for each model
     f.write('\n## Per-Class Metrics\n\n')
     
     for name, results in all_results.items():
         f.write(f'\n### {name}\n\n')
-        f.write('| Class | Precision | Recall | mAP50 | mAP50-95 |\n')
-        f.write('|-------|-----------|---------|--------|----------|\n')
+        f.write('| Class | mAP50-95 |\n')
+        f.write('|-------|----------|\n')
         
-        per_class = results['per_class']
-        for class_id, class_metrics in enumerate(per_class):
-            f.write(f"| Class {class_id} | {class_metrics.precision:.3f} | {class_metrics.recall:.3f} | {class_metrics.map50:.3f} | {class_metrics.map:.3f} |\n")
+        for class_id, map_value in enumerate(results['maps']):
+            f.write(f"| Class {class_id} | {map_value:.3f} |\n")
 
 print("Results have been written to results.md")
