@@ -16,7 +16,7 @@ for model in models:
         data="data.yaml",
         epochs=100,
         imgsz=640,
-        project=f"medieval-manuscript-{model}",
+        project=f"ms-{model}",
         batch=8,  # Reduce batch size (default is 16)
         # cache=False,  # Disable caching
         workers=2  # Reduce number of workers

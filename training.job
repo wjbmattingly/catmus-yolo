@@ -5,8 +5,8 @@
 #$ -l gpu,ngpu=1,gpu_arch=L40S
 #$ -cwd
 #$ -j y
-#$ -N training
-#$ -o training.log
+#$ -N training_all
+#$ -o training_all.log
 #$ -m bea
 #$ -M mattinglyw@si.edu
 #
