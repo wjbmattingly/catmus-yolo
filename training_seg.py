@@ -10,14 +10,15 @@ models = [
 
 for model_name in models:
     model = YOLO(model_name)  # load a pretrained model
+    model_name = model_name.replace('.pt', '')
 
         # Train the model with memory-saving parameters
     results = model.train(
-        data="data.yaml",
+        data="yolov11_output/data.yaml",
         epochs=100,
         imgsz=640,
         batch=8,  # Reduce batch size (default is 16)
         # cache=False,  # Disable caching
-        name=f"ms_{model_name.replace('.pt', '')}",
+        name=f"ms_{model_name}",
         workers=2  # Reduce number of workers
     )
