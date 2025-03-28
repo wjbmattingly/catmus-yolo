@@ -234,33 +234,60 @@ def convert_to_yolov11_format(data, output_dir="./", split="train", create_yaml=
     txt_filepath = os.path.join(output_dir, split, "labels", txt_filename)
     image_filepath = os.path.join(output_dir, split, "images", image_filename)
 
-    # Create annotation file
+    # Early check for mask mode requirements
+    if segmentation_type == 'mask':
+        has_polygons = False
+        valid_polygons = []
+        
+        for i in range(len(objects['id'])):
+            polygon = None
+            if 'segmentation' in objects and i < len(objects['segmentation']):
+                polygon = objects['segmentation'][i]
+            elif 'polygons' in objects and i < len(objects['polygons']):
+                polygon = objects['polygons'][i]
+                
+            if polygon:
+                has_polygons = True
+                valid_polygons.append((i, polygon))
+        
+        if not has_polygons:
+            print(f"Skipping {data.get('shelfmark', 'unknown')}: No polygon annotations found")
+            return False
+        
+        # Only process objects that have valid polygons
+        valid_indices = [idx for idx, _ in valid_polygons]
+        objects = {k: [v[i] for i in valid_indices] for k, v in objects.items()}
+
+    # Now process the filtered objects
     with open(txt_filepath, "w") as f:
         for i in range(len(objects['id'])):
             class_id = class_to_id[objects[class_source][i]]
+            bbox = objects['bbox'][i]
             
-            if segmentation_type == 'mask' and has_polygons:
-                # Handle polygon/mask segmentation
-                polygon = None
+            # Validate and scale bbox
+            try:
+                x1, y1, x2, y2 = bbox
+                if not (0 <= x1 < image_width and 0 <= y1 < image_height and 
+                       0 < x2 <= image_width and 0 < y2 <= image_height and
+                       x1 < x2 and y1 < y2):
+                    continue
                 
-                # Try different possible polygon/mask keys
-                if 'segmentation' in objects and i < len(objects['segmentation']):
-                    polygon = objects['segmentation'][i]
-                elif 'polygons' in objects and i < len(objects['polygons']):
-                    polygon = objects['polygons'][i]
-                elif 'mask' in objects and i < len(objects['mask']):
-                    # Convert mask to polygon
-                    mask = objects['mask'][i]
-                    if isinstance(mask, np.ndarray) or hasattr(mask, 'shape'):  # numpy array or similar
-                        from skimage.measure import find_contours
-                        contours = find_contours(mask, 0.5)
-                        if contours:
-                            # Take the largest contour
-                            largest_contour = max(contours, key=lambda x: len(x))
-                            # Convert to flat list [x1,y1,x2,y2,...]
-                            polygon = largest_contour.flatten().tolist()
+                # Scale coordinates to match resized image
+                x1 *= scale_factor
+                y1 *= scale_factor
+                x2 *= scale_factor
+                y2 *= scale_factor
                 
-                if polygon:
+                # Convert to YOLO format (normalized)
+                center_x = ((x1 + x2) / 2) / new_width
+                center_y = ((y1 + y2) / 2) / new_height
+                width = (x2 - x1) / new_width
+                height = (y2 - y1) / new_height
+                
+                if segmentation_type == 'mask':
+                    # Get the corresponding polygon
+                    polygon = valid_polygons[i][1]
+                    
                     # Scale polygon coordinates
                     scaled_polygon = []
                     for j in range(0, len(polygon), 2):
@@ -272,39 +299,24 @@ def convert_to_yolov11_format(data, output_dir="./", split="train", create_yaml=
                     
                     # Convert to YOLO format
                     yolo_poly = convert_polygon_to_yolo(scaled_polygon, new_width, new_height)
-                    if yolo_poly:
-                        # Write in YOLO format: class_id x1 y1 x2 y2 ...
-                        poly_str = ' '.join([f"{coord:.6f}" for coord in yolo_poly])
-                        f.write(f"{class_id} {poly_str}\n")
-                        continue
-                
-                # Fallback to bbox if polygon conversion failed
-                print(f"Warning: Couldn't convert polygon for object {i}, falling back to bbox")
-            
-            # Default to bounding box (either by choice or as fallback)
-            bbox = objects['bbox'][i]
-            x1, y1, x2, y2 = bbox
-            
-            # Scale coordinates to match resized image
-            x1 *= scale_factor
-            y1 *= scale_factor
-            x2 *= scale_factor
-            y2 *= scale_factor
-
-            # Convert to YOLO format (normalized)
-            center_x = ((x1 + x2) / 2) / new_width
-            center_y = ((y1 + y2) / 2) / new_height
-            width = (x2 - x1) / new_width
-            height = (y2 - y1) / new_height
-
-            f.write(f"{class_id} {center_x:.6f} {center_y:.6f} {width:.6f} {height:.6f}\n")
+                    
+                    # Write in YOLO segmentation format
+                    poly_str = ' '.join([f"{coord:.6f}" for coord in yolo_poly])
+                    f.write(f"{class_id} {center_x:.6f} {center_y:.6f} {width:.6f} {height:.6f} {poly_str}\n")
+                else:
+                    # Write bbox-only format
+                    f.write(f"{class_id} {center_x:.6f} {center_y:.6f} {width:.6f} {height:.6f}\n")
+                    
+            except (ValueError, IndexError) as e:
+                print(f"Skipping object in {data.get('shelfmark', 'unknown')}: Invalid bounding box {bbox}")
+                continue
 
     # Save resized image
     resized_image.save(image_filepath, "JPEG", quality=95)
 
     return True
 
-def process_dataset(dataset, output_dir="./", train_split=0.8, max_size=1500, segmentation_type='bbox'):
+def process_dataset(dataset, output_dir="./", train_split=0.8, max_size=1500, segmentation_type='mask'):
     """
     Process the entire dataset and split into train/valid sets
     
@@ -316,6 +328,7 @@ def process_dataset(dataset, output_dir="./", train_split=0.8, max_size=1500, se
         segmentation_type (str): Type of segmentation to use ('bbox' or 'mask')
     """
     from tqdm import tqdm
+    print(f"Processing dataset {dataset} with segmentation type {segmentation_type}.")
     
     # Dictionary to keep track of shelfmark counts
     shelfmark_counts = {}
